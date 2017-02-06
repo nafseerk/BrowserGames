@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+    //global variables
+    var targetWord;
+    var shuffledWord;
+
+    //ajax call to get next random word and call back to create Next question
+    function RandomWord() {
+        var requestStr = "http://randomword.setgetgo.com/get.php";
+
+        $.ajax({
+            type: "GET",
+            url: requestStr,
+            dataType: "jsonp",
+            jsonpCallback: 'shuffleAndCreate'
+        });
+    }
+
+    function shuffleAndCreate(data) {
+      targetWord = data.Word;
+      shuffledWord = targetWord.shuffle().toLowerCase();
+      createNext();
+    }
+
+    function createNext() {
+        setCorrectAnswerImageVisible(false);
+
+        var questionRow = document.getElementById("questionRow");
+        var answerRow = document.getElementById("answerRow");
+        while (questionRow.hasChildNodes()) {
+          questionRow.removeChild(questionRow.lastChild);
+        }
+        while (answerRow.hasChildNodes()) {
+          answerRow.removeChild(answerRow.lastChild);
+        }
+        var tableCell;
+		    for(i = 0; i < shuffledWord.length; i++) {
+             tableCell = document.createElement("TD");
+             tableCell.innerHTML = '<output name="letter" draggable="true" ondragstart="drag(event)" id="letter_' + i+ '"' + '>' + shuffledWord[i] + '</output>';
+             document.getElementById("questionRow").appendChild(tableCell);
+             tableCell = document.createElement("TD");
+             var onDropAttr = document.createAttribute("ondrop");
+             onDropAttr.value = "drop(event)";
+             var onDragOverAttr = document.createAttribute("ondragover");
+             onDragOverAttr.value = "allowDrop(event)";
+             var idAttr = document.createAttribute("id");
+             idAttr.value = "answerCell_" + i;
+             tableCell.setAttributeNode(onDropAttr);
+             tableCell.setAttributeNode(onDragOverAttr);
+             tableCell.setAttributeNode(idAttr);
+    		     document.getElementById("answerRow").appendChild(tableCell);
+		    }
+	  }
+
+    function getCurrentWord() {
+        currentGuess = "";
+        for(i = 0; i < targetWord.length; i++) {
+          if(document.getElementById("answerCell_" + i).childNodes[0] != undefined) {
+            currentGuess += document.getElementById("answerCell_" + i).childNodes[0].innerHTML;
+          }else {
+            currentGuess += "_";
+          }
+        }
+
+        if(currentGuess.toLowerCase() === targetWord.toLowerCase()) {
+          updateScore();
+          setCorrectAnswerImageVisible(true);
+        }
+    }
+
+    //function to shuffle the random string
+    String.prototype.shuffle = function () {
+        var a = this.split(""),
+        n = a.length;
+
+        for(var i = n - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+        return a.join("");
+    }
+
+//===Drop functionality start===
+    function allowDrop(ev) {
+      ev.preventDefault();
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      var data = ev.dataTransfer.getData("text");
+      ev.target.appendChild(document.getElementById(data));
+      getCurrentWord();
+    }
+
+//===Drop functionality end===
+
+    //show or hide the correct Answer image
+    function setCorrectAnswerImageVisible(visible) {
+      var img = document.getElementById("correctAnswerImg");
+      img.style.visibility = (visible ? 'visible' : 'hidden');
+    }
+
+    //update the score for a correct answer
+    function updateScore() {
+      var currentScore = parseInt(document.getElementById("score").innerHTML);
+      document.getElementById("score").innerHTML = currentScore + targetWord.length;
+    }
+
+    function saveScoreAndQuit() {
+      var thisGameScore = parseInt(document.getElementById("score").innerHTML);
+      if (typeof(Storage) !== "undefined") {
+        if(parseInt(thisGameScore) > parseInt(localStorage.getItem("HighScore"))) {
+          localStorage.setItem("PreviousHighScore", localStorage.getItem("HighScore"));
+          localStorage.setItem("HighScore", thisGameScore);
+          localStorage.setItem("IsHighScoreBroken", 'true');
+          location.href="exit.html";
+          return;
+        }
+        localStorage.setItem("LastGameScore", thisGameScore);
+        localStorage.setItem("IsHighScoreBroken", 'false');
+        location.href="exit.html";
+      } else {
+        alert("Sorry, your browser does not support the game");
+      }
+    }
+</script>
+<style>
+table, tr { border: 1px solid black; border-collapse: collapse;}
+td {
+  padding: 5px;
+  border: 1px solid black;
+  width:50px;
+  height:50px;
+  font-family: fantasy;
+  font-size: 50px;
+  color: blue;
+  text-align: center;
+}
+
+</style>
+</head>
+<body onload="RandomWord()">
+  <div id="ans">
+    <span style="font-family:verdana; font-size:30;"><b>Guess the Word</b></span>
+    <img id="correctAnswerImg" src="correctAnswer.png" width="30px" height="30px"style="visibility:hidden;"/>
+	<table id="answer">
+    	<tr id="answerRow">
+    	</tr>
+	</table>
+  </div>
+
+  <br/>
+  <div id="que">
+  <span style="font-family:verdana; font-size:30;"><b>Un-jumble this</b></span>
+	<table id="question">
+		<tr id="questionRow">
+    	</tr>
+	</table>
+  </div>
+
+ <br/>
+  <div id="scoreCard" style="font-family:verdana; font-size:30;">
+    <b>Your Score: </b>
+    <output style="color:magenta" id="score" name="score">0</output>
+  </div>
+	<br/>
+	<button type="button" onclick="RandomWord()">Next</button>
+  <button type="button" onclick="createNext()">Retry</button>
+  <button type="button" onclick="saveScoreAndQuit()">Quit</button>
+</body>
+</html>

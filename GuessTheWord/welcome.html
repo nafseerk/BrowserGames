@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script>
+//load details if its existing player
+function loadUserDetails() {
+  if (typeof(Storage) !== "undefined") {
+    if(localStorage.getItem("Name") != undefined) {
+      console.log("user present");
+      document.body.removeChild(document.getElementById("newUser"));
+      document.getElementById("name").value = localStorage.getItem("Name");
+      document.getElementById("highScore").value = localStorage.getItem("HighScore");
+    } else {
+      document.body.removeChild(document.getElementById("existingUser"));
+    }
+  }else {
+    document.getElementById("browserSupportMsg").innerHTML = "Sorry, your browser does not support the game";
+  }
+}
+
+//Save details for a first time player
+function storeUserDetailsAndRedirect() {
+    var firstName = document.getElementById("fn").value;
+    var lastName = document.getElementById("ln").value;
+    var email = document.getElementById("email").value;
+    localStorage.setItem("Name", firstName + ' ' + lastName);
+    localStorage.setItem("Email", email);
+    localStorage.setItem("HighScore", 0);
+    location.href = "main.html";
+}
+</script>
+</head>
+<body onload="loadUserDetails()">
+  
+  <div id="newUser">
+  <h1>Hi...Welcome to <span style="font-family:Fantasy; color: blue">Guess the Word</span> game</h1>
+  <h2>Enter your details:</h2>
+  <form action="javascript:storeUserDetailsAndRedirect()">
+  First name:<br>
+  <input type="text" id="fn" name="firstname" required>
+  <br>
+  Last name:<br>
+  <input type="text" id="ln" name="lastname" required>
+  <br>
+  E-mail:<br>
+  <input type="email" id="email" name="email" required>
+  <br><br>
+  <input type="submit" value="Let's Start">
+  </div>
+
+  <div id="existingUser">
+    <h1>Welcome back <output id="name" style="font-family:Cursive; color:blue"></output> to the game</h1>
+    <h2>Your high score is <output id="highScore" style="font-family:Verdana; color:blue"></output>. Let's break it</h2>
+    <button type="button" onclick='location.href="main.html"'>Start Playing</button>
+  </div>
+</form>
+</body>
+</html>

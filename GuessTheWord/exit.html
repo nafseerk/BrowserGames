@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+
+function showScores() {
+  if (typeof(Storage) !== "undefined") {
+    if(localStorage.getItem("IsHighScoreBroken") == 'true') {
+      document.getElementById("NewHighScore").value = localStorage.getItem("HighScore");
+      document.getElementById("PreviousHighScore").value = localStorage.getItem("PreviousHighScore");
+    } else {
+      document.body.removeChild(document.getElementById("newHighScoreDiv"));
+      document.getElementById("LastGameScore").value = localStorage.getItem("LastGameScore");
+    }
+  }else {
+    alert("Sorry, your browser does not support the game");
+  }
+}
+</script>
+</head>
+<body onload="showScores()">
+  <h1 style="text-align:center;">Hope you had fun</h1>
+  <div>
+    <h2> Your Score: <output id="LastGameScore"></output></h2>
+  </div>
+  <div id="newHighScoreDiv">
+    <h2>Congratulations...You have a new high score</h2>
+    <p style="font-family:Verdana; font-size:50px">New High Score:<output style="color: blue" id="NewHighScore"></output> </p>
+    <p style="font-family:Verdana; font-size:50px">Previous High Score:<output style="color: blue" id="PreviousHighScore"></output> </p>
+  </div>
+</body>
+</html>
